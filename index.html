@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HK Mahjong Scorer</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="masthead">
+        <div>
+          <p class="eyebrow">Hong Kong / Cantonese Mahjong</p>
+          <h1>Hand scorer</h1>
+        </div>
+        <button class="ghost-button" id="clearHand" type="button">Clear</button>
+      </header>
+
+      <section class="panel hand-panel" aria-labelledby="handTitle">
+        <div class="section-heading">
+          <div>
+            <h2 id="handTitle">Winning hand</h2>
+            <p>Select exactly 14 tiles. Each tile can appear up to four times.</p>
+          </div>
+          <output id="tileCount" class="tile-count">0 / 14</output>
+        </div>
+        <div id="selectedTiles" class="selected-tiles" aria-live="polite"></div>
+      </section>
+
+      <section class="panel options-panel" aria-labelledby="optionsTitle">
+        <h2 id="optionsTitle">Win details</h2>
+        <div class="option-grid">
+          <label>
+            <span>Seat wind</span>
+            <select id="seatWind"></select>
+          </label>
+          <label>
+            <span>Round wind</span>
+            <select id="roundWind"></select>
+          </label>
+          <label class="check-row">
+            <input id="selfDraw" type="checkbox">
+            <span>Self-drawn win</span>
+          </label>
+          <label class="check-row">
+            <input id="concealed" type="checkbox">
+            <span>Concealed hand</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel examples-panel" aria-labelledby="examplesTitle">
+        <div class="section-heading">
+          <div>
+            <h2 id="examplesTitle">Examples</h2>
+            <p>Load a hand to test the scorer.</p>
+          </div>
+        </div>
+        <div id="examples" class="examples"></div>
+      </section>
+
+      <section class="tile-picker" aria-labelledby="tilesTitle">
+        <div class="section-heading">
+          <div>
+            <h2 id="tilesTitle">Tiles</h2>
+            <p>Tap tiles to add them to the hand.</p>
+          </div>
+        </div>
+        <div id="tileGroups" class="tile-groups"></div>
+      </section>
+
+      <aside class="score-card" aria-labelledby="scoreTitle">
+        <div class="score-total">
+          <div>
+            <p class="eyebrow">Score</p>
+            <h2 id="scoreTitle"><span id="fanTotal">0</span> fan</h2>
+          </div>
+          <div id="limitBadge" class="limit-badge" hidden>Limit</div>
+        </div>
+        <div id="scoreStatus" class="score-status">Select a completed hand to score it.</div>
+        <div id="meldBreakdown" class="breakdown-block"></div>
+        <div id="fanBreakdown" class="breakdown-block"></div>
+      </aside>
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
