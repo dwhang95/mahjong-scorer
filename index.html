@@ -20,11 +20,14 @@
         <div class="section-heading">
           <div>
             <h2 id="handTitle">Winning hand</h2>
-            <p>Select exactly 14 tiles. Each tile can appear up to four times.</p>
+            <p>Select exactly 14 tiles. Tap a selected tile to remove it.</p>
           </div>
           <output id="tileCount" class="tile-count">0 / 14</output>
         </div>
         <div id="selectedTiles" class="selected-tiles" aria-live="polite"></div>
+        <div class="hand-actions" aria-label="Hand actions">
+          <button class="ghost-button" id="undoTile" type="button">Undo last tile</button>
+        </div>
       </section>
 
       <section class="panel options-panel" aria-labelledby="optionsTitle">
@@ -45,6 +48,25 @@
           <label class="check-row">
             <input id="concealed" type="checkbox">
             <span>Concealed hand</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="panel rules-panel" aria-labelledby="rulesTitle">
+        <div class="section-heading">
+          <div>
+            <h2 id="rulesTitle">House rules</h2>
+            <p>Keep these matched to the table before comparing scores.</p>
+          </div>
+        </div>
+        <div class="option-grid">
+          <label class="check-row">
+            <input id="minimumFanEnabled" type="checkbox" checked>
+            <span>Require 3 fan minimum</span>
+          </label>
+          <label>
+            <span>Fan cap</span>
+            <input id="fanCap" type="number" min="1" max="99" step="1" value="10">
           </label>
         </div>
       </section>
@@ -78,6 +100,10 @@
           <div id="limitBadge" class="limit-badge" hidden>Limit</div>
         </div>
         <div id="scoreStatus" class="score-status">Select a completed hand to score it.</div>
+        <div class="assumptions-block">
+          <h3>Current ruleset</h3>
+          <ul id="assumptionsList"></ul>
+        </div>
         <div id="meldBreakdown" class="breakdown-block"></div>
         <div id="fanBreakdown" class="breakdown-block"></div>
       </aside>

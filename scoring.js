@@ -1,14 +1,22 @@
 import { TILES, TILE_BY_ID, getCounts } from "./tiles.js";
 
-const FAN_LIMIT = 10;
+const DEFAULT_FAN_CAP = 10;
+const DEFAULT_MINIMUM_FAN = 3;
 
 export function scoreHand(tileIds, options) {
+  const rules = normalizeRules(options);
+
   if (tileIds.length !== 14) {
     return {
       isValid: false,
       isLimit: false,
       totalFan: 0,
+      rawFan: 0,
       message: "Select exactly 14 tiles for a completed winning hand.",
+      feedback: [
+        `${14 - tileIds.length > 0 ? `${14 - tileIds.length} more tile${14 - tileIds.length === 1 ? "" : "s"} needed.` : "Remove extra tiles until the hand has 14 tiles."}`,
+        "A winning hand is usually four sets plus a pair, or the special Seven Pairs hand.",
+      ],
       arrangement: null,
       fanItems: [],
     };
@@ -16,32 +24,59 @@ export function scoreHand(tileIds, options) {
 
   const counts = getCounts(tileIds);
   if (Object.values(counts).some((count) => count > 4)) {
-    return invalidResult("A hand cannot contain more than four copies of a tile.");
+    return invalidResult(
+      "Too many copies of one tile.",
+      ["A real Mahjong set only has four of each tile. Remove the extra copy before scoring."]
+    );
   }
 
   const arrangements = findWinningArrangements(counts);
   if (!arrangements.length) {
-    return invalidResult("This tile set is not a standard completed hand or seven pairs.");
+    return invalidResult(
+      "These 14 tiles do not form a recognized winning hand.",
+      [
+        "For a normal hand, the tiles must split into four sets and one pair.",
+        "A set is either three identical tiles or three suited tiles in sequence.",
+        "Seven Pairs is also supported, but it must be exactly seven pairs.",
+      ]
+    );
   }
 
-  const scored = arrangements.map((arrangement) => scoreArrangement(tileIds, arrangement, options));
+  const scored = arrangements.map((arrangement) => scoreArrangement(tileIds, arrangement, options, rules));
   scored.sort((a, b) => b.totalFan - a.totalFan);
   const best = scored[0];
+  const meetsMinimum = !rules.minimumFanEnabled || best.rawFan >= DEFAULT_MINIMUM_FAN;
   return {
     ...best,
     isValid: true,
-    message: best.totalFan >= 3
-      ? "Meets the common 3 fan minimum."
-      : "Valid hand, but below the common 3 fan minimum.",
+    meetsMinimum,
+    message: rules.minimumFanEnabled
+      ? (meetsMinimum
+        ? `Valid winning hand. Meets the ${DEFAULT_MINIMUM_FAN} fan minimum.`
+        : `Valid shape, but below the ${DEFAULT_MINIMUM_FAN} fan minimum for this ruleset.`)
+      : "Valid winning hand. The 3 fan minimum is turned off.",
+    feedback: rules.minimumFanEnabled && !meetsMinimum
+      ? ["Some tables would not allow this win unless it reaches the minimum. Turn off the minimum only if your table uses that house rule."]
+      : [],
   };
 }
 
-function invalidResult(message) {
+function normalizeRules(options = {}) {
+  const fanCap = Number.parseInt(options.fanCap, 10);
+  return {
+    fanCap: Number.isFinite(fanCap) && fanCap > 0 ? fanCap : DEFAULT_FAN_CAP,
+    minimumFanEnabled: options.minimumFanEnabled !== false,
+  };
+}
+
+function invalidResult(message, feedback = []) {
   return {
     isValid: false,
     isLimit: false,
     totalFan: 0,
+    rawFan: 0,
     message,
+    feedback,
     arrangement: null,
     fanItems: [],
   };
@@ -104,7 +139,7 @@ function findMelds(counts) {
   return results;
 }
 
-function scoreArrangement(tileIds, arrangement, options) {
+function scoreArrangement(tileIds, arrangement, options, rules) {
   const fanItems = [];
   const groups = arrangement.groups;
   const melds = groups.filter((group) => group.type !== "pair");
@@ -154,9 +189,10 @@ function scoreArrangement(tileIds, arrangement, options) {
   if (options.concealed) addFan(fanItems, "Concealed Hand", 1, "No exposed calls marked for this hand.");
 
   const rawFan = fanItems.reduce((sum, item) => sum + item.fan, 0);
-  const isLimit = fanItems.some((item) => item.limit) || rawFan >= FAN_LIMIT;
+  const isLimit = fanItems.some((item) => item.limit) || rawFan >= rules.fanCap;
   return {
-    totalFan: Math.min(rawFan, FAN_LIMIT),
+    totalFan: Math.min(rawFan, rules.fanCap),
+    rawFan,
     isLimit,
     arrangement,
     fanItems,

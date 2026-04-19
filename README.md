@@ -12,6 +12,25 @@ python3 -m http.server 8000
 
 Then visit `http://127.0.0.1:8000/`.
 
+## Streamlit Deployment
+
+This repo also includes a Streamlit wrapper for deploying the same app to Streamlit Community Cloud.
+
+Deploy settings:
+
+- Repository: this GitHub repository
+- Branch: `main` or your active deployment branch
+- Entry point: `streamlit_app.py`
+- Custom subdomain: `dereks-mahjong-scorer`
+
+If the subdomain is available, the public URL will be:
+
+```text
+https://dereks-mahjong-scorer.streamlit.app/
+```
+
+Streamlit installs dependencies from `requirements.txt`. The wrapper embeds the existing static app and local SVG tile assets, so no secrets or external asset hosting are required.
+
 ## Current Scope
 
 - Manual tile selection for a 14-tile winning hand

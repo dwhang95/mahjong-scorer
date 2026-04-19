@@ -1,11 +1,11 @@
 :root {
   color-scheme: light;
-  --bg: #f6f4ef;
-  --surface: #fffaf0;
+  --bg: #f4f7f6;
+  --surface: #ffffff;
   --surface-strong: #ffffff;
   --ink: #1e2528;
   --muted: #657074;
-  --line: #d9d0bf;
+  --line: #d5dfdd;
   --accent: #0f766e;
   --accent-strong: #115e59;
   --danger: #b42318;
@@ -112,6 +112,11 @@ p {
   cursor: pointer;
 }
 
+.ghost-button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
 .ghost-button:hover,
 .example-button:hover {
   border-color: var(--accent);
@@ -119,6 +124,7 @@ p {
 
 .hand-panel,
 .options-panel,
+.rules-panel,
 .examples-panel,
 .tile-picker {
   grid-column: 1;
@@ -162,6 +168,19 @@ p {
   color: var(--accent-strong);
 }
 
+.score-status strong {
+  display: block;
+}
+
+.score-status ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.score-status li + li {
+  margin-top: 4px;
+}
+
 .score-status.error {
   background: #fff0ed;
   color: var(--danger);
@@ -179,6 +198,12 @@ p {
   background: rgba(255, 255, 255, 0.52);
 }
 
+.hand-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
 .selected-tile,
 .tile-button {
   width: 48px;
@@ -189,8 +214,67 @@ p {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.42rem;
   line-height: 1;
+}
+
+.tile {
+  box-shadow: inset 0 -4px 0 rgba(30, 37, 40, 0.06);
+  overflow: hidden;
+}
+
+.tile-face {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tile-face img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.tile-face__fallback {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 7px 4px 5px;
+  color: var(--ink);
+}
+
+.tile-face__fallback[hidden] {
+  display: none;
+}
+
+.tile-face__rank {
+  font-size: 1.34rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.tile-face__suit {
+  margin-top: 3px;
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.tile--dot .tile-face__rank,
+.tile--dragon .tile-face__rank {
+  color: #b42318;
+}
+
+.tile--bam .tile-face__rank {
+  color: #137a3f;
+}
+
+.tile--char .tile-face__rank,
+.tile--wind .tile-face__rank {
+  color: #1d4ed8;
 }
 
 .selected-tile {
@@ -237,6 +321,16 @@ p {
 }
 
 select {
+  width: 100%;
+  height: 42px;
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 0 10px;
+}
+
+input[type="number"] {
   width: 100%;
   height: 42px;
   border: 1px solid var(--line);
@@ -320,6 +414,26 @@ select {
   margin-top: 16px;
 }
 
+.assumptions-block {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.assumptions-block h3 {
+  margin: 0 0 8px;
+  font-size: 0.94rem;
+}
+
+.assumptions-block ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
 .breakdown-block h3 {
   margin: 0 0 8px;
   font-size: 0.94rem;
@@ -371,6 +485,19 @@ select {
   background: var(--surface);
 }
 
+.mini-tile .tile-face {
+  padding: 0;
+}
+
+.mini-tile .tile-face__rank {
+  font-size: 0.86rem;
+}
+
+.mini-tile .tile-face__suit {
+  font-size: 0.34rem;
+  margin-top: 2px;
+}
+
 @media (max-width: 860px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -379,6 +506,7 @@ select {
 
   .hand-panel,
   .options-panel,
+  .rules-panel,
   .examples-panel,
   .tile-picker,
   .score-card {
@@ -405,9 +533,20 @@ select {
     grid-template-columns: 1fr;
   }
 
+  .hand-actions {
+    justify-content: stretch;
+  }
+
+  .hand-actions .ghost-button {
+    width: 100%;
+  }
+
   .selected-tile,
   .tile-button {
     height: 54px;
-    font-size: 1.26rem;
+  }
+
+  .tile-face__rank {
+    font-size: 1.18rem;
   }
 }
