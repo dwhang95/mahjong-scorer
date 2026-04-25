@@ -12,6 +12,16 @@ python3 -m http.server 8000
 
 Then visit `http://127.0.0.1:8000/`.
 
+## Tests
+
+Run the lightweight scoring test suite with Node:
+
+```sh
+node --input-type=module -e "import('./tests.js')"
+```
+
+The tests print clear `PASS` / `FAIL` lines to the console and exit with an error if any case fails.
+
 ## Streamlit Deployment
 
 This repo also includes a Streamlit wrapper for deploying the same app to Streamlit Community Cloud.

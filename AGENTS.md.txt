@@ -1,0 +1,24 @@
+# AGENTS.md
+
+## Objective
+Maintain and improve a Hong Kong / Cantonese mahjong scoring app.
+
+## Code Structure
+- scoring.js: core scoring logic
+- app.js: UI logic
+- index.html: UI shell
+
+## Rules
+- Do not introduce dependencies
+- Preserve existing scoring behavior unless explicitly modifying
+- Keep logic readable and modular
+- Validate all changes against example hands
+
+## Testing
+- All changes must be tested with example hands
+- Flag uncertainty in scoring rules explicitly
+
+## Output
+- List files changed
+- Explain logic changes
+- Note edge cases not handled

@@ -7,20 +7,28 @@
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
+    <div class="ambient-grid" aria-hidden="true"></div>
     <main class="app-shell">
       <header class="masthead">
-        <div>
+        <div class="masthead-copy">
           <p class="eyebrow">Hong Kong / Cantonese Mahjong</p>
-          <h1>Hand scorer</h1>
+          <h1>Mahjong Studio</h1>
+          <p class="lede">Build a winning hand, flip table details, and see the fan story in real time.</p>
+          <div class="masthead-tags" aria-label="App highlights">
+            <span>14-tile lab</span>
+            <span>New-player friendly</span>
+            <span>Fan-first scoring</span>
+          </div>
         </div>
-        <button class="ghost-button" id="clearHand" type="button">Clear</button>
+        <button class="ghost-button clear-button" id="clearHand" type="button">Clear hand</button>
       </header>
 
       <section class="panel hand-panel" aria-labelledby="handTitle">
         <div class="section-heading">
           <div>
-            <h2 id="handTitle">Winning hand</h2>
-            <p>Select exactly 14 tiles. Tap a selected tile to remove it.</p>
+            <p class="section-kicker">Step 01</p>
+            <h2 id="handTitle">Your hand</h2>
+            <p>Pick 14 tiles and shape the win.</p>
           </div>
           <output id="tileCount" class="tile-count">0 / 14</output>
         </div>
@@ -31,7 +39,12 @@
       </section>
 
       <section class="panel options-panel" aria-labelledby="optionsTitle">
-        <h2 id="optionsTitle">Win details</h2>
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Step 02</p>
+            <h2 id="optionsTitle">Table setup</h2>
+          </div>
+        </div>
         <div class="option-grid">
           <label>
             <span>Seat wind</span>
@@ -41,7 +54,14 @@
             <span>Round wind</span>
             <select id="roundWind"></select>
           </label>
-          <label class="check-row">
+          <label>
+            <span>Win type</span>
+            <select id="winType">
+              <option value="discard">Discard</option>
+              <option value="self_draw">Self draw</option>
+            </select>
+          </label>
+          <label class="check-row compatibility-control">
             <input id="selfDraw" type="checkbox">
             <span>Self-drawn win</span>
           </label>
@@ -55,27 +75,72 @@
       <section class="panel rules-panel" aria-labelledby="rulesTitle">
         <div class="section-heading">
           <div>
+            <p class="section-kicker">Step 03</p>
             <h2 id="rulesTitle">House rules</h2>
-            <p>Keep these matched to the table before comparing scores.</p>
+            <p>Keep the table vibe honest.</p>
           </div>
         </div>
-        <div class="option-grid">
-          <label class="check-row">
-            <input id="minimumFanEnabled" type="checkbox" checked>
-            <span>Require 3 fan minimum</span>
+        <div class="tab-list" role="tablist" aria-label="Rules views">
+          <button class="tab-button is-active" id="rulesSetupTab" type="button" role="tab" aria-selected="true" aria-controls="rulesSetupPanel" data-rules-tab="setup">Setup</button>
+          <button class="tab-button" id="rulesSummaryTab" type="button" role="tab" aria-selected="false" aria-controls="rulesSummaryPanel" data-rules-tab="summary">Summary</button>
+        </div>
+        <div id="rulesSetupPanel" role="tabpanel" aria-labelledby="rulesSetupTab" data-rules-panel="setup">
+          <div class="option-grid">
+            <label class="check-row">
+              <input id="minimumFanEnabled" type="checkbox" checked>
+              <span>Require 3 fan minimum</span>
+            </label>
+            <label>
+              <span>Fan cap</span>
+              <input id="fanCap" type="number" min="1" max="99" step="1" value="10">
+            </label>
+          </div>
+        </div>
+        <div id="rulesSummaryPanel" role="tabpanel" aria-labelledby="rulesSummaryTab" data-rules-panel="summary" hidden></div>
+      </section>
+
+      <section class="panel table-panel" aria-labelledby="tableTitle">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Step 04</p>
+            <h2 id="tableTitle">Table net</h2>
+            <p>Show every seat and settle the win.</p>
+          </div>
+        </div>
+        <div id="commonTable" class="common-table" aria-live="polite"></div>
+        <div class="option-grid table-controls">
+          <label>
+            <span>Winner</span>
+            <select id="winnerSeat">
+              <option value="east">East</option>
+              <option value="south">South</option>
+              <option value="west">West</option>
+              <option value="north">North</option>
+            </select>
           </label>
           <label>
-            <span>Fan cap</span>
-            <input id="fanCap" type="number" min="1" max="99" step="1" value="10">
+            <span>Discarder</span>
+            <select id="discarderSeat">
+              <option value="east">East</option>
+              <option value="south">South</option>
+              <option value="west">West</option>
+              <option value="north">North</option>
+            </select>
+          </label>
+          <label>
+            <span>Base unit</span>
+            <input id="basePointUnit" type="number" min="1" max="9999" step="1" value="1">
           </label>
         </div>
+        <div id="tableNet" class="table-net" aria-live="polite"></div>
       </section>
 
       <section class="panel examples-panel" aria-labelledby="examplesTitle">
         <div class="section-heading">
           <div>
-            <h2 id="examplesTitle">Examples</h2>
-            <p>Load a hand to test the scorer.</p>
+            <p class="section-kicker">Shortcuts</p>
+            <h2 id="examplesTitle">Starter hands</h2>
+            <p>Load a shape and study the score.</p>
           </div>
         </div>
         <div id="examples" class="examples"></div>
@@ -84,8 +149,9 @@
       <section class="tile-picker" aria-labelledby="tilesTitle">
         <div class="section-heading">
           <div>
+            <p class="section-kicker">Rack</p>
             <h2 id="tilesTitle">Tiles</h2>
-            <p>Tap tiles to add them to the hand.</p>
+            <p>Tap in the hand from left to right.</p>
           </div>
         </div>
         <div id="tileGroups" class="tile-groups"></div>
@@ -94,7 +160,7 @@
       <aside class="score-card" aria-labelledby="scoreTitle">
         <div class="score-total">
           <div>
-            <p class="eyebrow">Score</p>
+            <p class="eyebrow">Live score</p>
             <h2 id="scoreTitle"><span id="fanTotal">0</span> fan</h2>
           </div>
           <div id="limitBadge" class="limit-badge" hidden>Limit</div>
