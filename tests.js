@@ -1,11 +1,12 @@
 import { scoreHand } from "./scoring.js";
-import { RULESET_PRESETS, createRuleset } from "./rules.js";
+import { FAN_KEYS, RULESET_PRESETS, createRuleset } from "./rules.js";
 
 const DEFAULT_OPTIONS = {
   seatWind: "east",
   roundWind: "south",
   selfDraw: false,
   concealed: false,
+  flowerCount: 0,
   minimumFanEnabled: true,
   fanCap: 10,
 };
@@ -616,6 +617,48 @@ const tests = [
       assertEqual(result.isValid, true, "hand should be valid");
       assertFan(result, "Three Concealed Pungs", 2);
       assertNoFan(result, "Four Concealed Pungs");
+    },
+  },
+  {
+    name: "Pretty / flower tiles add fan outside the 14-tile hand",
+    tiles: [
+      "dot-1", "dot-2", "dot-3",
+      "dot-4", "dot-5", "dot-6",
+      "bam-2", "bam-3", "bam-4",
+      "char-6", "char-7", "char-8",
+      "dot-9", "dot-9",
+    ],
+    options: { flowerCount: 3, minimumFanEnabled: false },
+    assert: (result) => {
+      assertFan(result, "Pretty / Flower Tiles", 3);
+      assertIncludes(
+        result.fanItems.find((fanItem) => fanItem.name === "Pretty / Flower Tiles").description,
+        "3 pretty/flower",
+        "pretty/flower description should include count"
+      );
+    },
+  },
+  {
+    name: "Pretty / flower tiles can be disabled by ruleset",
+    tiles: [
+      "dot-1", "dot-2", "dot-3",
+      "dot-4", "dot-5", "dot-6",
+      "bam-2", "bam-3", "bam-4",
+      "char-6", "char-7", "char-8",
+      "dot-9", "dot-9",
+    ],
+    options: {
+      flowerCount: 3,
+      minimumFanEnabled: false,
+      ruleset: createRuleset({
+        fans: {
+          [FAN_KEYS.prettyFlowers]: { enabled: false },
+        },
+      }),
+    },
+    assert: (result) => {
+      assertEqual(result.isValid, true, "hand should be valid");
+      assertNoFan(result, "Pretty / Flower Tiles");
     },
   },
   {

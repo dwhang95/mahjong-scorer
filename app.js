@@ -7,6 +7,7 @@ import { TILE_GROUPS, TILE_BY_ID, WINDS, getCounts } from "./tiles.js";
 let activeSeat = "east";
 let tableHands = Object.fromEntries(WINDS.map((seat) => [seat, []]));
 let playerNames = Object.fromEntries(WINDS.map((seat) => [seat, capitalize(seat)]));
+let prettyFlowerCounts = Object.fromEntries(WINDS.map((seat) => [seat, 0]));
 let meldExposureBySeat = Object.fromEntries(WINDS.map((seat) => [seat, {}]));
 let currentMeldGroups = [];
 
@@ -18,6 +19,8 @@ const elements = {
   tileGroups: document.querySelector("#tileGroups"),
   examples: document.querySelector("#examples"),
   handTitle: document.querySelector("#handTitle"),
+  tablePanel: document.querySelector(".table-panel"),
+  toggleTableCompact: document.querySelector("#toggleTableCompact"),
   seatWind: document.querySelector("#seatWind"),
   roundWind: document.querySelector("#roundWind"),
   winType: document.querySelector("#winType"),
@@ -44,7 +47,7 @@ const elements = {
 function addTile(tileId) {
   const tileIds = getActiveTileIds();
   const counts = getCounts(tileIds);
-  if (tileIds.length >= 14 || counts[tileId] >= 4) return;
+  if (tileIds.length >= getSeatTarget(activeSeat) || counts[tileId] >= 4) return;
   tableHands = {
     ...tableHands,
     [activeSeat]: [...tileIds, tileId],
@@ -141,9 +144,9 @@ function renderExamples() {
 function render() {
   const activeTileIds = getActiveTileIds();
   const counts = getCounts(activeTileIds);
-  renderCommonTable();
+  const scoreResult = scoreHand(getScoreInput(), getWinOptions());
   elements.handTitle.textContent = `${getPlayerName(activeSeat)}'s hand`;
-  elements.tileCount.textContent = `${activeTileIds.length} / 14`;
+  elements.tileCount.textContent = `${activeTileIds.length} / ${getSeatTarget(activeSeat)}`;
   elements.undoTile.disabled = activeTileIds.length === 0;
   elements.selectedTiles.innerHTML = activeTileIds.length
     ? activeTileIds.map((tileId, index) => {
@@ -158,11 +161,12 @@ function render() {
     : `<p class="empty-hand">No tiles selected.</p>`;
 
   document.querySelectorAll(".tile-button").forEach((button) => {
-    button.disabled = activeTileIds.length >= 14 || counts[button.dataset.tileId] >= 4;
+    button.disabled = activeTileIds.length >= getSeatTarget(activeSeat) || counts[button.dataset.tileId] >= 4;
   });
 
   renderRulesSummary();
-  renderScore(scoreHand(getScoreInput(), getWinOptions()));
+  renderCommonTable(scoreResult);
+  renderScore(scoreResult);
 }
 
 function getWinOptions() {
@@ -174,6 +178,7 @@ function getWinOptions() {
     selfDraw: winType === "self_draw",
     winningTile: winType === "discard" ? getAssumedWinningTile(getWinnerTileIds()) : null,
     concealed: elements.concealed.checked,
+    flowerCount: getSeatPrettyFlowerCount(elements.winnerSeat.value),
     minimumFanEnabled: elements.minimumFanEnabled.checked,
     fanCap: elements.fanCap.value,
     melds: getSubmittedMelds(),
@@ -191,6 +196,7 @@ function getScoreInput() {
     roundWind: options.roundWind,
     winType: options.winType,
     winningTile: options.winType === "discard" ? getAssumedWinningTile(tiles) : null,
+    flowerCount: options.flowerCount,
     melds: options.melds,
   };
 }
@@ -241,6 +247,7 @@ function renderAssumptions() {
   return [
     "Shared table is local to this browser session; it does not sync across devices.",
     `${getPlayerName(elements.winnerSeat.value)}'s hand is used for scoring and settlement.`,
+    "Winner submits 14 tiles. Every non-winner submits 13 tiles.",
     "Hong Kong / Cantonese-style fan patterns supported by this app.",
     options.minimumFanEnabled ? "3 fan minimum is required." : "3 fan minimum is not required.",
     `Fan total is capped at ${fanCap}.`,
@@ -248,6 +255,7 @@ function renderAssumptions() {
     options.winType === "self_draw" ? "Win type: self draw." : "Win type: discard.",
     options.winType === "discard" ? "Discard winning tile is assumed to be the last selected tile." : null,
     options.concealed ? "Concealed hand is counted." : "Concealed hand is not counted.",
+    options.flowerCount > 0 ? `${getPlayerName(elements.winnerSeat.value)} has ${options.flowerCount} pretty/flower bonus tile${options.flowerCount === 1 ? "" : "s"} counted.` : `${getPlayerName(elements.winnerSeat.value)} has no pretty/flower bonus tiles counted.`,
     `Table net uses ${getBasePointUnit()} base point${getBasePointUnit() === 1 ? "" : "s"} x 2^fan.`,
     options.winType === "self_draw" ? "Self draw: all three other seats pay the winner." : "Discard: only the discarder pays the winner.",
     hasMeldExposureOverrides()
@@ -337,9 +345,13 @@ function renderTableNet(result) {
   }).join("");
 }
 
-function renderCommonTable() {
+function renderCommonTable(result) {
+  const settlement = getSettlement(result);
   const seatMarkup = WINDS.map((seat) => {
     const tileCount = getSeatTileIds(seat).length;
+    const target = getSeatTarget(seat);
+    const delta = settlement.deltas[seat] || 0;
+    const deltaClass = delta > 0 ? "positive" : delta < 0 ? "negative" : "neutral";
     const isActive = seat === activeSeat;
     const isWinner = seat === elements.winnerSeat.value;
     return `
@@ -349,15 +361,20 @@ function renderCommonTable() {
             <span class="seat-wind">${capitalize(seat)}</span>
             <strong>${getTableSeatRole(seat)}</strong>
           </div>
-          <span class="seat-count">${tileCount}/14</span>
+          <span class="seat-count ${getSeatCountClass(tileCount, target)}">${tileCount}/${target}</span>
         </div>
         <label>
           <span>Player</span>
           <input type="text" value="${escapeAttribute(getPlayerName(seat))}" data-player-name="${seat}" maxlength="24" aria-label="${capitalize(seat)} player name">
         </label>
+        <label>
+          <span>Pretty / flowers</span>
+          <input type="number" min="0" max="8" step="1" value="${getSeatPrettyFlowerCount(seat)}" data-pretty-flower-count="${seat}" aria-label="${capitalize(seat)} pretty and flower tile count">
+        </label>
         <div class="table-seat__tiles" aria-label="${capitalize(seat)} hand preview">
           ${renderSeatPreview(seat)}
         </div>
+        <output class="table-seat__net net-points ${deltaClass}">${formatSignedNumber(delta)}</output>
         <div class="table-seat__actions">
           <button class="seat-action" type="button" data-edit-seat="${seat}">${isActive ? "Editing" : "Edit hand"}</button>
           <button class="seat-action" type="button" data-winner-seat="${seat}">${isWinner ? "Winner" : "Set winner"}</button>
@@ -370,7 +387,7 @@ function renderCommonTable() {
     <div class="table-center" aria-hidden="true">
       <span>Round ${capitalize(elements.roundWind.value)}</span>
       <strong>${getWinType() === "self_draw" ? "Self draw" : "Discard win"}</strong>
-      <small>${getBasePointUnit()} base x 2^fan</small>
+      <small>${allHandTargetsMet() ? `${getBasePointUnit()} base x 2^fan` : "Fill 14/13 tile targets"}</small>
     </div>
     ${seatMarkup}
   `;
@@ -396,7 +413,7 @@ function getSettlement(result) {
   const winner = elements.winnerSeat.value;
   const winType = getWinType();
   const discarder = getDiscarderSeat(winner);
-  const canSettle = result.isValid && result.meetsMinimum !== false;
+  const canSettle = result.isValid && result.meetsMinimum !== false && allHandTargetsMet();
   if (!canSettle) {
     return { deltas, winner, discarder, winType, handValue: 0 };
   }
@@ -443,6 +460,20 @@ function getBasePointUnit() {
   return Number.isFinite(value) && value > 0 ? value : 1;
 }
 
+function allHandTargetsMet() {
+  return WINDS.every((seat) => getSeatTileIds(seat).length === getSeatTarget(seat));
+}
+
+function getSeatTarget(seat) {
+  return seat === elements.winnerSeat.value ? 14 : 13;
+}
+
+function getSeatCountClass(count, target) {
+  if (count === target) return "is-complete";
+  if (count > target) return "is-over";
+  return "";
+}
+
 function formatSignedNumber(value) {
   if (value > 0) return `+${value}`;
   return `${value}`;
@@ -451,6 +482,11 @@ function formatSignedNumber(value) {
 function normalizeFanCap(value) {
   const fanCap = Number.parseInt(value, 10);
   return Number.isFinite(fanCap) && fanCap > 0 ? fanCap : 10;
+}
+
+function normalizePrettyFlowerCount(value) {
+  const count = Number.parseInt(value, 10);
+  return Number.isFinite(count) && count > 0 ? Math.min(count, 8) : 0;
 }
 
 function renderMeld(group) {
@@ -542,6 +578,10 @@ function getWinnerTileIds() {
 
 function getSeatTileIds(seat) {
   return tableHands[seat] || [];
+}
+
+function getSeatPrettyFlowerCount(seat) {
+  return normalizePrettyFlowerCount(prettyFlowerCounts[seat]);
 }
 
 function getMeldExposure() {
@@ -658,6 +698,13 @@ elements.selectedTiles.addEventListener("click", (event) => {
   removeTile(Number(button.dataset.removeIndex));
 });
 
+elements.toggleTableCompact.addEventListener("click", () => {
+  const compact = !elements.tablePanel.classList.contains("is-compact");
+  elements.tablePanel.classList.toggle("is-compact", compact);
+  elements.toggleTableCompact.setAttribute("aria-pressed", compact ? "true" : "false");
+  elements.toggleTableCompact.textContent = compact ? "Expand" : "Compact";
+});
+
 elements.commonTable.addEventListener("click", (event) => {
   const editButton = event.target.closest("[data-edit-seat]");
   if (editButton) {
@@ -678,13 +725,23 @@ elements.commonTable.addEventListener("click", (event) => {
 });
 
 elements.commonTable.addEventListener("input", (event) => {
-  const input = event.target.closest("[data-player-name]");
-  if (!input) return;
-  playerNames = {
-    ...playerNames,
-    [input.dataset.playerName]: input.value,
+  const nameInput = event.target.closest("[data-player-name]");
+  if (nameInput) {
+    playerNames = {
+      ...playerNames,
+      [nameInput.dataset.playerName]: nameInput.value,
+    };
+    renderScore(scoreHand(getScoreInput(), getWinOptions()));
+    return;
+  }
+
+  const prettyFlowerInput = event.target.closest("[data-pretty-flower-count]");
+  if (!prettyFlowerInput) return;
+  prettyFlowerCounts = {
+    ...prettyFlowerCounts,
+    [prettyFlowerInput.dataset.prettyFlowerCount]: normalizePrettyFlowerCount(prettyFlowerInput.value),
   };
-  renderScore(scoreHand(getScoreInput(), getWinOptions()));
+  render();
 });
 
 [elements.concealed, elements.roundWind, elements.minimumFanEnabled, elements.fanCap, elements.basePointUnit].forEach((control) => {

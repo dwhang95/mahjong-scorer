@@ -23,12 +23,49 @@
         <button class="ghost-button clear-button" id="clearHand" type="button">Clear hand</button>
       </header>
 
+      <section class="panel table-panel" aria-labelledby="tableTitle">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Table</p>
+            <h2 id="tableTitle">Table net</h2>
+            <p>Show every seat and settle the win.</p>
+          </div>
+          <button class="ghost-button table-toggle" id="toggleTableCompact" type="button" aria-pressed="false">Compact</button>
+        </div>
+        <div id="commonTable" class="common-table" aria-live="polite"></div>
+        <div class="option-grid table-controls">
+          <label>
+            <span>Winner</span>
+            <select id="winnerSeat">
+              <option value="east">East</option>
+              <option value="south">South</option>
+              <option value="west">West</option>
+              <option value="north">North</option>
+            </select>
+          </label>
+          <label>
+            <span>Discarder</span>
+            <select id="discarderSeat">
+              <option value="east">East</option>
+              <option value="south">South</option>
+              <option value="west">West</option>
+              <option value="north">North</option>
+            </select>
+          </label>
+          <label>
+            <span>Base unit</span>
+            <input id="basePointUnit" type="number" min="1" max="9999" step="1" value="1">
+          </label>
+        </div>
+        <div id="tableNet" class="table-net" aria-live="polite"></div>
+      </section>
+
       <section class="panel hand-panel" aria-labelledby="handTitle">
         <div class="section-heading">
           <div>
             <p class="section-kicker">Step 01</p>
             <h2 id="handTitle">Your hand</h2>
-            <p>Pick 14 tiles and shape the win.</p>
+            <p>Pick 14 tiles for the winner, 13 for everyone else.</p>
           </div>
           <output id="tileCount" class="tile-count">0 / 14</output>
         </div>
@@ -82,7 +119,7 @@
         </div>
         <div class="tab-list" role="tablist" aria-label="Rules views">
           <button class="tab-button is-active" id="rulesSetupTab" type="button" role="tab" aria-selected="true" aria-controls="rulesSetupPanel" data-rules-tab="setup">Setup</button>
-          <button class="tab-button" id="rulesSummaryTab" type="button" role="tab" aria-selected="false" aria-controls="rulesSummaryPanel" data-rules-tab="summary">Summary</button>
+          <button class="tab-button" id="rulesRulebookTab" type="button" role="tab" aria-selected="false" aria-controls="rulesSummaryPanel" data-rules-tab="summary">Rulebook</button>
         </div>
         <div id="rulesSetupPanel" role="tabpanel" aria-labelledby="rulesSetupTab" data-rules-panel="setup">
           <div class="option-grid">
@@ -96,43 +133,7 @@
             </label>
           </div>
         </div>
-        <div id="rulesSummaryPanel" role="tabpanel" aria-labelledby="rulesSummaryTab" data-rules-panel="summary" hidden></div>
-      </section>
-
-      <section class="panel table-panel" aria-labelledby="tableTitle">
-        <div class="section-heading">
-          <div>
-            <p class="section-kicker">Step 04</p>
-            <h2 id="tableTitle">Table net</h2>
-            <p>Show every seat and settle the win.</p>
-          </div>
-        </div>
-        <div id="commonTable" class="common-table" aria-live="polite"></div>
-        <div class="option-grid table-controls">
-          <label>
-            <span>Winner</span>
-            <select id="winnerSeat">
-              <option value="east">East</option>
-              <option value="south">South</option>
-              <option value="west">West</option>
-              <option value="north">North</option>
-            </select>
-          </label>
-          <label>
-            <span>Discarder</span>
-            <select id="discarderSeat">
-              <option value="east">East</option>
-              <option value="south">South</option>
-              <option value="west">West</option>
-              <option value="north">North</option>
-            </select>
-          </label>
-          <label>
-            <span>Base unit</span>
-            <input id="basePointUnit" type="number" min="1" max="9999" step="1" value="1">
-          </label>
-        </div>
-        <div id="tableNet" class="table-net" aria-live="polite"></div>
+        <div id="rulesSummaryPanel" role="tabpanel" aria-labelledby="rulesRulebookTab" data-rules-panel="summary" hidden></div>
       </section>
 
       <section class="panel examples-panel" aria-labelledby="examplesTitle">

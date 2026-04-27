@@ -100,6 +100,9 @@ function normalizeInput(input, options = {}) {
   if (input?.winType) schemaOptions.selfDraw = input.winType === "self_draw";
   if (input?.winningTile) schemaOptions.winningTile = input.winningTile;
   if (input?.winType) schemaOptions.winType = input.winType;
+  if (input?.flowerCount !== undefined) schemaOptions.flowerCount = input.flowerCount;
+  if (input?.prettyCount !== undefined) schemaOptions.prettyCount = input.prettyCount;
+  if (input?.pretties !== undefined) schemaOptions.pretties = input.pretties;
   schemaOptions.concealed = !hasExposedMelds;
   schemaOptions.melds = melds;
 
@@ -294,6 +297,7 @@ function scoreArrangement(tileIds, arrangement, options, rules) {
   if (options.selfDraw && options.concealed) {
     addFan(fanItems, rules, FAN_KEYS.fullyConcealedHand);
   }
+  addPrettyFlowerFan(fanItems, rules, options);
 
   const rawFan = fanItems.reduce((sum, item) => sum + item.fan, 0);
   const isLimit = fanItems.some((item) => item.limit) || rawFan >= rules.fanCap;
@@ -457,12 +461,32 @@ function isSamePungMeld(meld, pung) {
     && pung.tiles.every((tileId) => tileId === meld.tiles[0]);
 }
 
+function addPrettyFlowerFan(fanItems, rules, options) {
+  const count = getPrettyFlowerCount(options);
+  if (count <= 0) return;
+  const fanConfig = rules.fans[FAN_KEYS.prettyFlowers];
+  if (!fanConfig?.enabled) return;
+  addFan(fanItems, rules, FAN_KEYS.prettyFlowers, {
+    fan: count * fanConfig.fan,
+    description: `${count} pretty/flower bonus tile${count === 1 ? "" : "s"} outside the winning hand.`,
+  });
+}
+
+function getPrettyFlowerCount(options) {
+  const values = [options.flowerCount, options.prettyCount, options.pretties];
+  for (const value of values) {
+    const count = Number.parseInt(value, 10);
+    if (Number.isFinite(count) && count > 0) return Math.min(count, 8);
+  }
+  return 0;
+}
+
 function addFan(fanItems, rules, key, overrides = {}) {
   const fanConfig = rules.fans[key];
   if (!fanConfig?.enabled) return;
   fanItems.push({
     name: overrides.name || fanConfig.name,
-    fan: fanConfig.fan,
+    fan: overrides.fan ?? fanConfig.fan,
     description: overrides.description || fanConfig.description,
     limit: fanConfig.limit === true,
   });

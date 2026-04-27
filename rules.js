@@ -27,6 +27,7 @@ export const FAN_KEYS = {
   selfDraw: "selfDraw",
   concealedHand: "concealedHand",
   fullyConcealedHand: "fullyConcealedHand",
+  prettyFlowers: "prettyFlowers",
 };
 
 const HK_DEFAULT_RULESET = {
@@ -218,6 +219,13 @@ const HK_DEFAULT_RULESET = {
       fan: 1,
       name: "Fully Concealed Hand",
       description: "No exposed calls and the winning tile was self-drawn.",
+      limit: false,
+    },
+    [FAN_KEYS.prettyFlowers]: {
+      enabled: true,
+      fan: 1,
+      name: "Pretty / Flower Tiles",
+      description: "Bonus tiles kept outside the 14-tile winning hand.",
       limit: false,
     },
   },
